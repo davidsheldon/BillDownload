@@ -1,0 +1,36 @@
+<project name="billDownload" default="jar" basedir=".">
+  <property file="build.props"/>
+
+  <path id="classpath">
+    <fileset dir="${lib_dir}">
+      <include name="**/*.jar"/>
+    </fileset>
+  </path>
+
+   
+  <target name="jar" depends="compile">
+  </target>
+
+  <target name="run" depends="compile">
+    <java classname="com.bitclean.billscrape.BillDownload" fork="true">
+      <arg value="${configfile}"/>
+      <classpath refid="classpath"/>
+      <classpath>
+        <pathelement location="${build_src_dir}"/>
+      </classpath>
+    </java>
+  </target>
+
+  <target name="clean">
+    <delete dir="${build_dir}"/>
+  </target>
+
+  <target name="compile">
+    <mkdir dir="${build_src_dir}"/>
+    <javac srcdir="${src_dir}" destdir="${build_src_dir}" debug="true" encoding="UTF-8">
+      <classpath refid="classpath"/>
+      <include name="**/*.java"/>
+    </javac>
+  </target>
+
+</project>

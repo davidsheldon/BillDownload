@@ -1,0 +1,7 @@
+!virgin
+overwrite: false
+verbose: false
+password: PASSWORD
+username: USERNAME
+filenamePattern: VirginBill-{1}-{0}.pdf
+

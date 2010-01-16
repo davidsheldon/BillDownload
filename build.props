@@ -1,0 +1,4 @@
+lib_dir=${basedir}/lib
+build_dir=${basedir}/build
+src_dir=${basedir}/src
+build_src_dir=${build_dir}/src
