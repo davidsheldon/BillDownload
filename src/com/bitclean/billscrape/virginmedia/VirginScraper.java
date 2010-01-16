@@ -1,10 +1,7 @@
 package com.bitclean.billscrape.virginmedia;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.MessageFormat;
@@ -19,12 +16,12 @@ import org.apache.commons.lang.StringUtils;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.htmlunit.HtmlUnitDriver;
 
 import com.bitclean.billscrape.Scraper;
 import com.bitclean.billscrape.ScraperDefinition;
 import com.bitclean.billscrape.utils.CollectionUtils;
-import com.gargoylesoftware.htmlunit.WebClient;
+import com.bitclean.billscrape.utils.MyHtmlUnitDriver;
+import com.bitclean.billscrape.utils.IOUtils;
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 
@@ -288,16 +285,7 @@ public class VirginScraper implements Scraper {
       try {
         final String pdfUrl = new URI(driver.getCurrentUrl()).resolve("GeneratePDF").toString();
         config_.verboseLog("PDF URL: " + pdfUrl);
-        final InputStream is = ((MyHtmlUnitDriver) driver).client().getPage(pdfUrl).getWebResponse().getContentAsStream();
-
-
-        OutputStream os = new FileOutputStream(savefile);
-        int i;
-        while ((i = is.read()) != -1) {
-          os.write(i);
-        }
-        os.close();
-        is.close();
+        IOUtils.saveUrl(savefile, pdfUrl, (MyHtmlUnitDriver) driver);
       }
       catch (URISyntaxException e) {
         System.err.println("Unable to parse URL.");
@@ -309,17 +297,6 @@ public class VirginScraper implements Scraper {
 
     }
 
-  }
-
-  /**
-   * Nasty hack to expose the underlying web client. We want to be able to download the PDF
-   * in this client without affecting the WebDriver or using the nasty javascript that the 
-   * site uses.
-   */
-  private static class MyHtmlUnitDriver extends HtmlUnitDriver {
-    public WebClient client() {
-      return getWebClient();
-    }
   }
 
   public class PageObject {

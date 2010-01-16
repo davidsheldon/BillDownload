@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 
+import com.bitclean.billscrape.eonenergy.EonScraper;
 import com.bitclean.billscrape.virginmedia.VirginScraper;
 import com.esotericsoftware.yamlbeans.YamlException;
 import com.esotericsoftware.yamlbeans.YamlReader;
@@ -29,6 +30,7 @@ public class BillDownload {
       }
     });
     reader.getConfig().setClassTag("virgin", VirginScraper.Options.class);
+    reader.getConfig().setClassTag("eonenergy", EonScraper.Options.class);
     
     while(true) {
       ScraperDefinition def = (ScraperDefinition) reader.read();
