@@ -5,4 +5,9 @@ password: PASSWORD
 username: USERNAME
 baseDir: /tmp/
 filenamePattern: VirginBill-{1}-{0}.pdf
+---
+!eonenergy
+username: USERNAME
+password: PASSWORD
+filenamePattern: EonBill-{1}-{0}.pdf
 
