@@ -242,6 +242,8 @@ public class EonScraper implements Scraper {
       }
 
       driver.navigate().back();
+      driver.navigate().back();
+      driver.navigate().back();
       config_.verboseLog("Back to: " + driver.getTitle() + " ; " + driver.getCurrentUrl());
     }
 
