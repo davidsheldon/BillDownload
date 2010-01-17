@@ -17,7 +17,6 @@ import org.openqa.selenium.WebElement;
 
 import com.bitclean.billscrape.Scraper;
 import com.bitclean.billscrape.ScraperDefinition;
-import com.bitclean.billscrape.utils.IOUtils;
 import com.bitclean.billscrape.utils.MyHtmlUnitDriver;
 
 public class EonScraper implements Scraper {
@@ -235,7 +234,7 @@ public class EonScraper implements Scraper {
         final String pdfUrl = iframe.getAttribute("src");
         config_.verboseLog("PDF URL: " + pdfUrl);
         config_.log("Saving to: " + saveFile);
-        IOUtils.saveUrl(saveFile, pdfUrl, (MyHtmlUnitDriver) driver);
+        ((MyHtmlUnitDriver) driver).saveUrl(saveFile, pdfUrl);
       }
       catch (IOException e) {
         config_.log("Unable to save pdf");

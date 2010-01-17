@@ -21,7 +21,6 @@ import com.bitclean.billscrape.Scraper;
 import com.bitclean.billscrape.ScraperDefinition;
 import com.bitclean.billscrape.utils.CollectionUtils;
 import com.bitclean.billscrape.utils.MyHtmlUnitDriver;
-import com.bitclean.billscrape.utils.IOUtils;
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 
@@ -285,7 +284,7 @@ public class VirginScraper implements Scraper {
       try {
         final String pdfUrl = new URI(driver.getCurrentUrl()).resolve("GeneratePDF").toString();
         config_.verboseLog("PDF URL: " + pdfUrl);
-        IOUtils.saveUrl(savefile, pdfUrl, (MyHtmlUnitDriver) driver);
+        ((MyHtmlUnitDriver) driver).saveUrl(savefile, pdfUrl);
       }
       catch (URISyntaxException e) {
         System.err.println("Unable to parse URL.");
