@@ -10,4 +10,8 @@ filenamePattern: VirginBill-{1}-{0}.pdf
 username: USERNAME
 password: PASSWORD
 filenamePattern: EonBill-{1}-{0}.pdf
-
+---
+!tmobile
+username: USERNAME
+password: PASSWORD
+filenamePattern: TMobileBill-{1}-{0}.pdf

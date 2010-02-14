@@ -6,6 +6,7 @@ import java.io.FileReader;
 
 import com.bitclean.billscrape.eonenergy.EonScraper;
 import com.bitclean.billscrape.virginmedia.VirginScraper;
+import com.bitclean.billscrape.Tmobile.TmobileScraper;
 import com.esotericsoftware.yamlbeans.YamlException;
 import com.esotericsoftware.yamlbeans.YamlReader;
 import com.esotericsoftware.yamlbeans.scalar.ScalarSerializer;
@@ -31,6 +32,7 @@ public class BillDownload {
     });
     reader.getConfig().setClassTag("virgin", VirginScraper.Options.class);
     reader.getConfig().setClassTag("eonenergy", EonScraper.Options.class);
+    reader.getConfig().setClassTag("tmobile", TmobileScraper.Options.class);
     
     while(true) {
       ScraperDefinition def = (ScraperDefinition) reader.read();
