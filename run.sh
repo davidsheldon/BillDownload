@@ -5,4 +5,4 @@ if [ -e "$JAVA_HOME/bin/java" ] ; then
 else
   JAVA=java
 fi
-$JAVA -classpath build/src/:lib/*:lib/seleniumdeps/* com.bitclean.billscrape.BillDownload $1 
+$JAVA -Dlog4j.debug -classpath build/src/:lib/*:lib/seleniumdeps/* com.bitclean.billscrape.BillDownload $1 

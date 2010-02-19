@@ -2,7 +2,6 @@ package com.bitclean.billscrape.Tmobile;
 
 import java.io.File;
 import java.io.IOException;
-import java.text.MessageFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -15,8 +14,8 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
+import com.bitclean.billscrape.DefaultOptions;
 import com.bitclean.billscrape.Scraper;
-import com.bitclean.billscrape.ScraperDefinition;
 import com.bitclean.billscrape.utils.MyHtmlUnitDriver;
 import com.gargoylesoftware.htmlunit.RefreshHandler;
 import com.gargoylesoftware.htmlunit.WaitingRefreshHandler;
@@ -39,26 +38,12 @@ public class TmobileScraper implements Scraper {
     LoginPage page = new FrontPage(driver).login();
     YourAccountPage accountPage = page.login(config_.getUsername(), config_.getPassword());
     accountPage.getBills();
-    
+
     driver.client().setRefreshHandler(oldRefreshHandler);
 
   }
 
-  public static class Options implements ScraperDefinition {
-    boolean overwrite = false;
-
-    private File baseDir = new File("/tmp");
-
-    private String filenamePattern = "{0}-{1}.pdf";
-
-    boolean verbose = false;
-
-    private String password_;
-
-    private String username_;
-
-    boolean quiet;
-
+  public static class Options extends DefaultOptions {
     public Scraper getInstance() {
 
       if (StringUtils.isEmpty(password_)) {
@@ -71,40 +56,6 @@ public class TmobileScraper implements Scraper {
       }
 
       return new TmobileScraper(this);
-    }
-
-    public String getUsername() {
-      return username_;
-    }
-
-    public String getPassword() {
-      return password_;
-    }
-
-    public void setPassword(final String password) {
-      password_ = password;
-    }
-
-    public void setUsername(final String username) {
-      username_ = username;
-    }
-
-    private File getFile(final Date date, final String accountNumber) {
-      SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
-
-      return new File(baseDir, MessageFormat.format(filenamePattern, accountNumber, dateFormat.format(date)));
-    }
-
-    public void verboseLog(final String message) {
-      if (verbose) {
-        System.err.println(message);
-      }
-    }
-
-    public void log(final String message) {
-      if (!quiet) {
-        System.out.println(message);
-      }
     }
   }
 
@@ -160,9 +111,8 @@ public class TmobileScraper implements Scraper {
         catch (ParseException e) {
           continue;
         }
-        final File saveFile = config_.getFile(date, accountNumber);
-        if (saveFile.exists() && !config_.overwrite) {
-          config_.log("File exists, skipping " + saveFile);
+        final File saveFile = config_.getSaveFile(date, accountNumber);
+        if (saveFile == null) {
           continue;
         }
         values.add(dateValue);
@@ -207,9 +157,8 @@ public class TmobileScraper implements Scraper {
         return;
       }
 
-      final File saveFile = config_.getFile(date, accountNumber);
-      if (saveFile.exists() && !config_.overwrite) {
-        config_.log("File exists, skipping " + saveFile);
+      final File saveFile = config_.getSaveFile(date, accountNumber);
+      if (saveFile == null) {
         return;
       }
 

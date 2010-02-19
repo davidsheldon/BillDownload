@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.text.MessageFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -17,8 +16,8 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
+import com.bitclean.billscrape.DefaultOptions;
 import com.bitclean.billscrape.Scraper;
-import com.bitclean.billscrape.ScraperDefinition;
 import com.bitclean.billscrape.utils.CollectionUtils;
 import com.bitclean.billscrape.utils.MyHtmlUnitDriver;
 import com.google.common.base.Function;
@@ -47,21 +46,7 @@ public class VirginScraper implements Scraper {
     currentPage.previousBills().getAllBills();
   }
 
-  public static class Options implements ScraperDefinition {
-    boolean overwrite = false;
-
-    private File baseDir = new File("/tmp");
-
-    private String filenamePattern = "{0}-{1}.pdf";
-
-    boolean verbose = false;
-
-    private String password_;
-
-    private String username_;
-
-    boolean quiet;
-
+  public static class Options extends DefaultOptions {
     public Scraper getInstance() {
 
       if (StringUtils.isEmpty(password_)) {
@@ -76,39 +61,6 @@ public class VirginScraper implements Scraper {
       return new VirginScraper(this);
     }
 
-    public String getUsername() {
-      return username_;
-    }
-
-    public String getPassword() {
-      return password_;
-    }
-
-    public void setPassword(final String password) {
-      password_ = password;
-    }
-
-    public void setUsername(final String username) {
-      username_ = username;
-    }
-
-    private File getFile(final Date date, final String accountNumber) {
-      SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
-      
-      return new File(baseDir, MessageFormat.format(filenamePattern, accountNumber, dateFormat.format(date)));
-    }
-
-    public void verboseLog(final String message) {
-      if (verbose) {
-        System.err.println(message);
-      }
-    }
-
-    public void log(final String message) {
-      if (!quiet) {
-        System.out.println(message);
-      }
-    }
   }
 
   public class BillPage extends PageObject {
@@ -182,14 +134,9 @@ public class VirginScraper implements Scraper {
       Date date = getBillDate(properties);
       final String accountNumber = properties.get("Your account number");
 
-      File savefile = config_.getFile(date, accountNumber);
-
-      if (savefile.exists() && !config_.overwrite) {
-        config_.log("File exists, skipping. " + savefile);
+      File savefile = config_.getSaveFile(date, accountNumber);
+      if (savefile == null) {
         return;
-      }
-      else {
-        config_.log("Saving " + savefile);
       }
 
       final List<WebElement> elements = bill.findElements(By.tagName("input"));
@@ -252,6 +199,7 @@ public class VirginScraper implements Scraper {
 
   }
 
+
   public class CurrentBillsPage extends PageWithBills {
 
     public CurrentBillsPage(final WebDriver driver) {
@@ -300,7 +248,7 @@ public class VirginScraper implements Scraper {
 
   public class PageObject {
     WebDriver driver;
-  
+
     public PageObject(final WebDriver driver) {
       this.driver = driver;
       config_.verboseLog("On page: " + driver.getTitle());
