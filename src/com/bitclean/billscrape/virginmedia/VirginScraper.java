@@ -20,7 +20,7 @@ import com.bitclean.billscrape.DefaultOptions;
 import com.bitclean.billscrape.Scraper;
 import com.bitclean.billscrape.utils.CollectionUtils;
 import com.bitclean.billscrape.utils.MyHtmlUnitDriver;
-import com.google.common.base.Function;
+import com.bitclean.billscrape.utils.ElementText;
 import com.google.common.collect.Collections2;
 
 /**
@@ -188,12 +188,7 @@ public class VirginScraper implements Scraper {
       final List<WebElement> items = bill.findElement(By.tagName("dl")).findElements(By.xpath("*"));
 
 
-      Map<String, String> properties = CollectionUtils.mapFromIterable(Collections2.transform(items, new Function<WebElement, String>() {
-
-        public String apply(final WebElement webElement) {
-          return webElement.getText();
-        }
-      }));
+      Map<String, String> properties = CollectionUtils.mapFromIterable(Collections2.transform(items, new ElementText()));
       return properties;
     }
 
@@ -254,4 +249,5 @@ public class VirginScraper implements Scraper {
       config_.verboseLog("On page: " + driver.getTitle());
     }
   }
+
 }

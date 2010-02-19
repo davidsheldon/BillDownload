@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import org.openqa.selenium.WebElement;
 import org.openqa.selenium.htmlunit.HtmlUnitDriver;
 
 import com.gargoylesoftware.htmlunit.Page;
@@ -14,7 +13,7 @@ import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.WebResponse;
 
 /**
-   * Nasty hack to expose the underlying web client. We want to be able to download the PDF
+ * Nasty hack to expose the underlying web client. We want to be able to download the PDF
  * in this client without affecting the WebDriver or using the nasty javascript that the 
  * site uses.
  */

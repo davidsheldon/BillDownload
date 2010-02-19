@@ -1,5 +1,17 @@
 package com.bitclean.billscrape.smile;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+
 import org.apache.commons.lang.StringUtils;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
@@ -7,7 +19,10 @@ import org.openqa.selenium.WebElement;
 
 import com.bitclean.billscrape.DefaultOptions;
 import com.bitclean.billscrape.Scraper;
+import com.bitclean.billscrape.utils.ElementText;
 import com.bitclean.billscrape.utils.MyHtmlUnitDriver;
+import com.google.common.base.Joiner;
+import com.google.common.collect.Collections2;
 
 /**
  * Downloads monthly statements as CSV
@@ -20,6 +35,9 @@ public class SmileScraper implements Scraper {
     config_ = options;
   }
 
+  private SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.ENGLISH);
+
+
   public void run() {
     WebDriver driver = new MyHtmlUnitDriver();
 
@@ -27,7 +45,27 @@ public class SmileScraper implements Scraper {
 
     LoginPage bp = new LoginPage(driver);
     final SmileScraper.FirstPage homepage = bp.login(config_);
-    homepage.clickAccount("current account").previousStatements();
+    final SmileScraper.Previous previous = homepage.clickAccount("current account").previousStatements();
+    final List<String> statementList = previous.getStatementList();
+
+    for (int i = 0; i < Math.min(statementList.size(), 12); i++) {
+      String date = statementList.get(i);
+      final Date d = getDate(date);
+      final File saveFile = config_.getSaveFile(d, config_.accountNumber);
+      if (d != null && saveFile != null) {
+        previous.getStatement(date);
+      }
+    }
+  }
+
+  private Date getDate(final String date) {
+    try {
+      return dateFormat.parse(date);
+    }
+    catch (ParseException e) {
+      System.err.println("Unable to parse: " + date);
+    }
+    return null;
   }
 
   public static class Options extends DefaultOptions {
@@ -38,6 +76,14 @@ public class SmileScraper implements Scraper {
     String passCode;
 
     String lastSchool;
+
+    String firstSchool;
+
+    String birthPlace;
+
+    String memorableDate;
+
+    String memorableName;
 
     public Scraper getInstance() {
 
@@ -55,10 +101,6 @@ public class SmileScraper implements Scraper {
       }
 
       return new SmileScraper(this);
-    }
-
-    public void setPassCode(final String passCode) {
-      this.passCode = passCode;
     }
   }
 
@@ -84,8 +126,7 @@ public class SmileScraper implements Scraper {
       String[] fields = new String[] { "firstPassCodeDigit", "secondPassCodeDigit" };
       String[] ordinals = new String[] { "first", "second", "third", "fourth" };
 
-      for (int i = 0; i < fields.length; i++) {
-        String field = fields[i];
+      for (String field : fields) {
         String label = labelFor(driver, field);
         Character digit = null;
         final String ord = label.split(" ")[0];
@@ -100,7 +141,6 @@ public class SmileScraper implements Scraper {
         }
         System.err.println("Field: " + field + " " + ord + " " + digit);
         final WebElement element = driver.findElement(By.id(field)).findElements(By.tagName("option")).get(digit - '0' + 1);
-        System.err.println(element);
         element.click();
       }
 
@@ -115,6 +155,22 @@ public class SmileScraper implements Scraper {
       if ("lastSchool".equals(requested)) {
         field.sendKeys(o.lastSchool);
       }
+      if ("firstSchool".equals(requested)) {
+        field.sendKeys(o.firstSchool);
+      }
+      if ("birthPlace".equals(requested)) {
+        field.sendKeys(o.birthPlace);
+      }
+      if ("memorableName".equals(requested)) {
+        field.sendKeys(o.memorableName);
+      }
+      if ("memorableDay".equals(requested)) {
+        final String[] vals = o.memorableDate.split("-");
+        field.sendKeys(vals[0]);
+        driver.findElement(By.xpath("//input[@name='memorableMonth']")).sendKeys(vals[1]);
+        driver.findElement(By.xpath("//input[@name='memorableYear']")).sendKeys(vals[2]);
+      }
+
 
       okButton = driver.findElement(okButtonOnForm("loginSpiForm"));
       okButton.click();
@@ -151,6 +207,57 @@ public class SmileScraper implements Scraper {
     public Previous(final WebDriver driver) {
       super(driver);
     }
+
+
+    public void getStatement(String date) {
+      driver.findElement(By.linkText(date)).click();
+      final File saveFile = config_.getSaveFile(getDate(date), config_.accountNumber);
+
+      dumpSummaryTable(saveFile);
+      driver.findElement(By.xpath("//a[@title = 'view previous statememts']")).click();
+    }
+
+    private void dumpSummaryTable(final File saveFile) {
+      PrintWriter writer = null;
+      try {
+        writer = new PrintWriter(new FileWriter(saveFile));
+        WebElement table = driver.findElement(By.xpath("//table[@class='summaryTable']"));
+
+        final List<WebElement> items = table.findElements(By.xpath(".//tr"));
+        for (WebElement row : items) {
+          writer.println(tableToCSV(row, "td"));
+        }
+      }
+      catch (IOException e) {
+        System.err.println("Error writing to " + saveFile + " " + e);
+      }
+      finally {
+        if (writer != null) {
+          writer.close();
+        }
+      }
+    }
+
+    private String tableToCSV(final WebElement row, final String elements) {
+      final List<WebElement> tds = row.findElements(By.tagName(elements));
+      final Collection<String> rowData = Collections2.transform(tds, new ElementText());
+      return Joiner.on(",").join(rowData);
+    }
+
+    public List<String> getStatementList() {
+      WebElement table = driver.findElement(By.xpath("//table[@class='summaryTable']"));
+
+      final List<WebElement> items = table.findElements(By.xpath(".//tr"));
+      final List<String> ret = new ArrayList<String>(items.size());
+      for (WebElement row : items) {
+        final List<WebElement> trs = row.findElements(By.tagName("td"));
+        if (! trs.isEmpty()) {
+          ret.add(trs.get(1).getText());
+        }
+      }
+      return ret;
+    }
+
   }
 
   public class PageObject {
